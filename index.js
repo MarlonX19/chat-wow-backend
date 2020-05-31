@@ -3,11 +3,15 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
 app.get('/', (req, res) => {
-  res.send({ response: 'Conectado com sucesso!'});
+  res.send({ response: 'Conectado com sucesso!' });
 });
 
 io.on('connection', (socket) => {
-  socket.broadcast.emit('connected', 'Novo usuário entrou na sala!')
+  io.emit('connected', socket.client.conn.server.clientsCount)
+
+  socket.on('disconnect', (reason) => {
+    io.emit('disconnect', socket.client.conn.server.clientsCount)
+  });
 
   socket.on('msg', (data, name) => {
     io.emit('msg', data, name)
@@ -21,6 +25,8 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('blur')
   })
 });
+
+
 
 http.listen(process.env.PORT || 3000, () => {
   console.log('listening on port');
